@@ -72,5 +72,6 @@ public:
     void minimilize();
     int gcd(int numer, int denom);
     static Fraction convert(float number);
+    static float convert(int numer, int denom);
 };
 #endif

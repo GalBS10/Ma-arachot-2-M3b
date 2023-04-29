@@ -1,6 +1,10 @@
 #include "Fraction.hpp"
 #include <cmath>
 
+//people i have talked to:
+//-Lidor Keren Yeshua
+//
+
 Fraction::Fraction()
 {
     Fraction(1,1);
@@ -8,17 +12,24 @@ Fraction::Fraction()
 
 Fraction::Fraction(int numer, int denomin)
 { // constructor
-        if (denomin == 0)
-        {
-            throw std::invalid_argument("Division by zero exception");//found this throw in stackoverflow.
-        }
-        // if(numer < 0 && denomin < 0){// if both negetive then its positive number.
-        //     numer = 0-numer;
-        //     denomin = 0-denomin;
-        // }
-        int _gcd = gcd(numer, denomin);
-        numerator = numer / _gcd;
-        denominator = denomin / _gcd;
+    if (denomin == 0)
+    {
+        throw std::invalid_argument("Division by zero exception");//found this throw in stackoverflow.
+    }
+    if(numer < 0 && denomin < 0){// if both negetive then its positive number.
+        numer = 0-numer;
+        denomin = 0-denomin;
+    }
+    int _gcd = gcd(numer, denomin);
+    numerator = numer / _gcd;
+    denominator = denomin / _gcd;
+}
+
+float Fraction::convert (int numer, int denom)
+{
+    float result = static_cast<float>(numer) / static_cast<float>(denom);
+    result = roundf(result * 1000) / 1000; // round to 3 decimal places
+    return result;
 }
 
 Fraction Fraction::convert(float number){
@@ -151,8 +162,11 @@ std::ostream &operator<<(std::ostream &os, const Fraction &fraction)
     return os;
 }
 
-std::istream &operator>>(std::istream & istream, Fraction &fraction){
-
+std::istream &operator>>(std::istream & istream, Fraction &fraction)
+{
+    if (istream.rdbuf()->in_avail() == 0){ //found tihs check on stackoverflow.
+        throw invalid_argument("needs to put two numbers");
+    }
     istream >> fraction.numerator;
     if (istream.rdbuf()->in_avail() == 0){ //found tihs check on stackoverflow.
         throw invalid_argument("needs to put two numbers");
