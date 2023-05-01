@@ -62,7 +62,7 @@ int Fraction::getDenominator() const
 
 // operators only with Fractions
 Fraction Fraction::operator+(const Fraction &fraction) const
-{
+{//Add
     int new_num;
     int new_den;
     // Check for integer overflow
@@ -78,9 +78,14 @@ Fraction Fraction::operator+(const Fraction &fraction) const
 
 
 Fraction Fraction::operator-(const Fraction &fraction) const
-{ // minus
-    int new_num = numerator * fraction.getDenominator() - denominator * fraction.getNumerator();
-    int new_den = denominator * fraction.getDenominator();
+{//Minus
+    int new_num, new_den;
+    // Check for integer overflow
+    if (__builtin_sub_overflow(numerator * fraction.getDenominator(), denominator * fraction.getNumerator(), &new_num) || __builtin_mul_overflow(denominator, fraction.getDenominator(), &new_den))
+    {
+        throw std::overflow_error("overflow detected");
+    }
+
     Fraction answer(new_num, new_den);
     return answer;
 }
@@ -91,19 +96,32 @@ Fraction Fraction::operator/(const Fraction &fraction) const
     {
         throw std::runtime_error("Division by zero exception");
     }
-    int new_num = numerator * fraction.getDenominator();
-    int new_den = denominator * fraction.getNumerator();
+
+    int new_num;
+    int new_den;
+    
+    // Check for integer overflow
+    if (__builtin_mul_overflow(numerator, fraction.getDenominator(), &new_num) || __builtin_mul_overflow(denominator, fraction.getNumerator(), &new_den))
+    {
+        throw std::overflow_error("overflow detected");
+    }
+
     Fraction answer(new_num, new_den);
     return answer;
 }
 
+
 Fraction Fraction::operator*(const Fraction &fraction) const
 { // multiply
-    int new_num = numerator * fraction.getNumerator();
-    int new_den = denominator * fraction.getDenominator();
+    int new_num, new_den;
+    if (__builtin_mul_overflow(numerator, fraction.getNumerator(), &new_num) || __builtin_mul_overflow(denominator, fraction.getDenominator(), &new_den))
+    {
+        throw std::overflow_error("overflow detected");
+    }
     Fraction answer(new_num, new_den);
     return answer;
 }
+
 
 Fraction &Fraction::operator++()
 { // plus 1 and then execute
