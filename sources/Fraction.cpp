@@ -1,24 +1,29 @@
 #include "Fraction.hpp"
 #include <cmath>
+#include <limits>
 
-//people i have talked to:
+// people i have talked to:
 //-Lidor Keren Yeshua
-//
+//-Matan Aviv
+
+#define INT_MIN std::numeric_limits<int>::max()
+#define INT_MAX std::numeric_limits<int>::min()
 
 Fraction::Fraction()
 {
-    Fraction(1,1);
+    Fraction(1, 1);
 }
 
 Fraction::Fraction(int numer, int denomin)
 { // constructor
     if (denomin == 0)
     {
-        throw std::invalid_argument("Division by zero exception");//found this throw in stackoverflow.
+        throw std::invalid_argument("Division by zero exception"); // found this throw in stackoverflow.
     }
-    if(numer < 0 && denomin < 0){// if both negetive then its positive number.
-        numer = 0-numer;
-        denomin = 0-denomin;
+    if (numer < 0 && denomin < 0)
+    { // if both negetive then its positive number.
+        numer = 0 - numer;
+        denomin = 0 - denomin;
     }
     int _gcd = gcd(numer, denomin);
     numerator = numer / _gcd;
@@ -27,11 +32,11 @@ Fraction::Fraction(int numer, int denomin)
 
 Fraction::Fraction(float number)
 {
-    numerator = int(number*1000);
+    numerator = int(number * 1000);
     denominator = 1000;
 }
 
-void Fraction::convert (Fraction &fraction)
+void Fraction::convert(Fraction &fraction)
 {
     float result = static_cast<float>(fraction.getNumerator()) / static_cast<float>(fraction.getDenominator());
     result = roundf(result * 1000); // round to 3 decimal places
@@ -41,9 +46,8 @@ void Fraction::convert (Fraction &fraction)
 
 Fraction Fraction::convert(float number)
 {
-    return Fraction(int(1000*number),1000);
+    return Fraction(int(1000 * number), 1000);
 }
-
 
 // getters
 int Fraction::getNumerator() const
@@ -57,18 +61,18 @@ int Fraction::getDenominator() const
 }
 
 // operators only with Fractions
-Fraction Fraction::operator+(const Fraction& fraction) const {
-    int new_num = numerator * fraction.getDenominator() + denominator * fraction.getNumerator();
-    int new_den = denominator * fraction.getDenominator();
+Fraction Fraction::operator+(const Fraction &fraction) const
+{
+    int new_num;
+    int new_den;
+    // Check for integer overflow
+    if (__builtin_add_overflow(numerator * fraction.getDenominator(), denominator * fraction.getNumerator(), &new_num) || __builtin_mul_overflow(denominator, fraction.getDenominator(), &new_den))
+    {
+        throw std::overflow_error("overflow detected");
+    }
 
-    // float sum_float = float(new_num) / float(new_den);
-    // sum_float = round(sum_float * 1000.0) / 1000.0;
-
-    // Fraction sum_fraction(sum_float);
-    // sum_fraction.minimilize();
-    // return sum_fraction;
+    new_den = denominator * fraction.getDenominator();
     Fraction answer(new_num, new_den);
-    // answer.minimilize();
     return answer;
 }
 
@@ -78,19 +82,18 @@ Fraction Fraction::operator-(const Fraction &fraction) const
     int new_num = numerator * fraction.getDenominator() - denominator * fraction.getNumerator();
     int new_den = denominator * fraction.getDenominator();
     Fraction answer(new_num, new_den);
-    // answer.minimilize();
     return answer;
 }
 
 Fraction Fraction::operator/(const Fraction &fraction) const
 { // devision
-    if(fraction.numerator == 0){
+    if (fraction.numerator == 0)
+    {
         throw std::runtime_error("Division by zero exception");
     }
     int new_num = numerator * fraction.getDenominator();
     int new_den = denominator * fraction.getNumerator();
     Fraction answer(new_num, new_den);
-    // answer.minimilize();
     return answer;
 }
 
@@ -99,7 +102,6 @@ Fraction Fraction::operator*(const Fraction &fraction) const
     int new_num = numerator * fraction.getNumerator();
     int new_den = denominator * fraction.getDenominator();
     Fraction answer(new_num, new_den);
-    // answer.minimilize();
     return answer;
 }
 
@@ -132,48 +134,51 @@ Fraction Fraction::operator--(int)
 // operators with consts and Fractions
 // plus
 Fraction Fraction::operator+(float number) const
-{ 
-    return *this+convert(number);
+{
+    return *this + convert(number);
 }
 
-Fraction operator+(float number, const Fraction &fraction){
-    return Fraction::convert(number)+fraction;//because its a "friend" function we need to use ::
+Fraction operator+(float number, const Fraction &fraction)
+{
+    return Fraction::convert(number) + fraction; // because its a "friend" function we need to use ::
 }
 // minus
 Fraction Fraction::operator-(float number) const
-{ 
-    return *this-convert(number);
+{
+    return *this - convert(number);
 }
 
-Fraction operator-(float number, const Fraction &fraction){
-    return Fraction::convert(number)-fraction;
+Fraction operator-(float number, const Fraction &fraction)
+{
+    return Fraction::convert(number) - fraction;
 }
 // devision
 Fraction Fraction::operator/(float number) const
-{ 
-    return *this/convert(number);
+{
+    return *this / convert(number);
 }
 
 Fraction operator/(float number, const Fraction &fraction)
 {
-    return Fraction::convert(number)/fraction;
-} 
+    return Fraction::convert(number) / fraction;
+}
 // multiply
 Fraction Fraction::operator*(float number) const
-{ 
-    return *this* Fraction::convert(number);
+{
+    return *this * Fraction::convert(number);
 }
 
 Fraction operator*(float number, const Fraction &fraction)
 {
-    return Fraction::convert(number)*fraction;
+    return Fraction::convert(number) * fraction;
 }
 
 std::ostream &operator<<(std::ostream &os, const Fraction &fraction)
 { // to string
     float numer = fraction.getNumerator();
     float denom = fraction.getDenominator();
-    if(numer<0 || denom<0){
+    if (numer < 0 || denom < 0)
+    {
         numer = abs(numer);
         denom = abs(denom);
         os << "-";
@@ -182,39 +187,41 @@ std::ostream &operator<<(std::ostream &os, const Fraction &fraction)
     return os;
 }
 
-std::istream &operator>>(std::istream & istream, Fraction &fraction)
+std::istream &operator>>(std::istream &istream, Fraction &fraction)
 {
-    if (istream.rdbuf()->in_avail() == 0){ //found this check on stackoverflow.
+    if (istream.rdbuf()->in_avail() == 0)
+    { // found this check on stackoverflow.
         throw runtime_error("needs to put two numbers");
     }
     istream >> fraction.numerator;
-    if (istream.rdbuf()->in_avail() == 0){ //found this check on stackoverflow.
+    if (istream.rdbuf()->in_avail() == 0)
+    { // found this check on stackoverflow.
         throw runtime_error("needs to put two numbers");
     }
     istream >> fraction.denominator;
-    if(fraction.denominator == 0){
+    if (fraction.denominator == 0)
+    {
         throw std::runtime_error("Division by zero exception");
     }
     return istream;
 }
 
-
 // boolean
 
 // bigger
 bool Fraction::operator>(const Fraction &fraction) const
-{ 
+{
     return (float)numerator / denominator > (float)fraction.getNumerator() / fraction.getDenominator();
 }
 
 bool Fraction::operator>(float number) const
 {
-    return *this>Fraction::convert(number);
+    return *this > Fraction::convert(number);
 }
 
-bool operator>( float number, const Fraction &fraction1)
+bool operator>(float number, const Fraction &fraction1)
 {
-    return Fraction::convert(number)>fraction1;
+    return Fraction::convert(number) > fraction1;
 }
 
 // smaller
@@ -224,7 +231,7 @@ bool Fraction::operator<(const Fraction &fraction) const
 }
 
 bool Fraction::operator<(float number) const
-{ 
+{
     return *this < Fraction::convert(number);
 }
 bool operator<(float number, const Fraction &fraction1)
@@ -234,7 +241,7 @@ bool operator<(float number, const Fraction &fraction1)
 
 // bigger or equal to
 bool Fraction::operator>=(const Fraction &fraction) const
-{ 
+{
     return (float)numerator / denominator >= (float)fraction.getNumerator() / fraction.getDenominator();
 }
 
@@ -250,7 +257,7 @@ bool operator>=(float number, const Fraction &fraction)
 
 // smaller or equal to
 bool Fraction::operator<=(const Fraction &fraction) const
-{ 
+{
     return (float)numerator / denominator <= (float)fraction.getNumerator() / fraction.getDenominator();
 }
 
@@ -277,12 +284,10 @@ bool Fraction::operator==(const Fraction &fraction) const
 
     // return numerator == fraction.numerator && denominator == fraction.denominator;
 
-    float number1 = round(1000*float(numerator)/denominator)/1000.0;
-    float number2 = round(1000*float(fraction.numerator)/fraction.denominator)/1000.0;
+    float number1 = round(1000 * float(numerator) / denominator) / 1000.0;
+    float number2 = round(1000 * float(fraction.numerator) / fraction.denominator) / 1000.0;
 
     return number1 == number2;
-
-
 }
 
 bool Fraction::operator==(float number) const
@@ -292,12 +297,11 @@ bool Fraction::operator==(float number) const
 
 bool operator==(float number, const Fraction &fraction)
 {
-    float number2 = round(1000*float(fraction.numerator)/fraction.denominator)/1000.0;
+    float number2 = round(1000 * float(fraction.numerator) / fraction.denominator) / 1000.0;
     return number == number2;
 }
 
-
-//side functions
+// side functions
 void Fraction::minimilize()
 {
 
@@ -310,8 +314,8 @@ void Fraction::minimilize()
     // else nothing happens
 }
 
-int Fraction::gcd(int numer, int denom)//found this code on the internet.
-{ // getting the max num that divide both of the numerator and denominator.
+int Fraction::gcd(int numer, int denom) // found this code on the internet.
+{                                       // getting the max num that divide both of the numerator and denominator.
     if (denom != 0)
         return gcd(denom, numer % denom);
     else
