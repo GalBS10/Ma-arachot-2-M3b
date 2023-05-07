@@ -65,7 +65,7 @@ Fraction Fraction::operator+(const Fraction &fraction) const
 {//Add
     int new_num;
     int new_den;
-    // Check for integer overflow
+    // Check for integer overflow (seen this function at stackoverflow)
     if (__builtin_add_overflow(numerator * fraction.getDenominator(), denominator * fraction.getNumerator(), &new_num) || __builtin_mul_overflow(denominator, fraction.getDenominator(), &new_den))
     {
         throw std::overflow_error("overflow detected");
